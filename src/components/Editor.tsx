@@ -6,6 +6,7 @@ import ContentPanel from './ContentPanel'
 import DesignPanel from './DesignPanel'
 import Preview from './Preview'
 import { LangSwitch } from './Dashboard'
+import AuthBox, { SyncStatus } from './AuthBox'
 import { download, slugify } from '../utils'
 
 export default function Editor() {
@@ -32,7 +33,7 @@ export default function Editor() {
       <header className="no-print h-14 shrink-0 bg-white border-b border-gray-200 flex items-center gap-2 px-3">
         <button className="btn-ghost" onClick={() => selectResume(null)}><ArrowLeft size={16} />{t.back}</button>
         <input className="flex-1 min-w-0 max-w-sm rounded-md border border-transparent hover:border-gray-300 focus:border-blue-500 px-2 py-1 text-sm font-semibold outline-none" value={r.name} onChange={(e) => renameResume(r.id, e.target.value)} />
-        <span className="hidden md:inline text-[11px] text-gray-400">{t.autosaved}</span>
+        <span className="hidden md:inline"><SyncStatus /></span>
         <div className="flex-1" />
         <div className="hidden lg:flex items-center gap-1 mr-2">
           <button className="icon-btn" title={t.zoom} onClick={() => setZoom(Math.max(0.4, +(zoom - 0.1).toFixed(2)))}><ZoomOut size={16} /></button>
@@ -40,6 +41,7 @@ export default function Editor() {
           <button className="icon-btn" title={t.zoom} onClick={() => setZoom(Math.min(1.6, +(zoom + 0.1).toFixed(2)))}><ZoomIn size={16} /></button>
         </div>
         <LangSwitch value={uiLang} onChange={setUiLang} />
+        <AuthBox compact />
         <button className="btn-secondary hidden sm:inline-flex" onClick={() => fileRef.current?.click()} title={t.importJson}><Upload size={16} /></button>
         <input ref={fileRef} type="file" accept="application/json,.json" className="hidden" onChange={(e) => { void onImport(e.target.files?.[0]); e.target.value = '' }} />
         <button className="btn-secondary hidden sm:inline-flex" onClick={exportJson} title={t.exportJson}><FileJson size={16} /><span className="hidden xl:inline">{t.exportJson}</span></button>

@@ -1,0 +1,16 @@
+[Unit]
+Description=MyCV API (Google login + resume storage)
+After=network.target
+
+[Service]
+User=sm
+Group=sm
+EnvironmentFile=/etc/mycv/mycv.env
+ExecStart=/root/session_manager_workspaces/my-cv/server/bin/mycv-server
+WorkingDirectory=/var/lib/mycv
+Restart=always
+RestartSec=2
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

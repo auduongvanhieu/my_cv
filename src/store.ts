@@ -2,8 +2,8 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { Design, ListKey, Locale, Profile, Resume, SectionItem } from './types'
 import { blankResume, defaultDesign, defaultSections } from './data/defaults'
-import { sampleResume } from './data/sample'
 import { uid } from './utils'
+import type { User } from './api'
 
 interface State {
   resumes: Resume[]
@@ -11,12 +11,24 @@ interface State {
   uiLang: Locale
   zoom: number
   panel: 'content' | 'design'
+  user: User | null
+  authReady: boolean
+  googleClientId: string
+  aiParse: boolean
+  sync: 'idle' | 'saving' | 'saved' | 'error'
+
+  setUser: (user: User | null, resumes: Resume[]) => void
+  setAuthReady: (v: boolean) => void
+  setGoogleClientId: (id: string) => void
+  setAiParse: (v: boolean) => void
+  setSync: (s: 'idle' | 'saving' | 'saved' | 'error') => void
 
   setUiLang: (l: Locale) => void
   setZoom: (z: number) => void
   setPanel: (p: 'content' | 'design') => void
 
-  createResume: (kind: 'blank' | 'sample') => string
+  createResume: () => string
+  createFromParsed: (data: unknown, name: string) => string
   importResume: (data: unknown) => string | null
   duplicateResume: (id: string) => void
   deleteResume: (id: string) => void
@@ -54,6 +66,27 @@ function normalize(input: Partial<Resume>): Resume {
   return r
 }
 
+/** Builds a Resume from the AI extraction result (same shape as Resume minus ids/design). */
+export function resumeFromParsed(data: unknown, name: string): Resume {
+  const d = (data && typeof data === 'object' ? data : {}) as Record<string, unknown>
+  const r = blankResume(name)
+  const strOf = (v: unknown) => (typeof v === 'string' ? v : '')
+  const list = (v: unknown) => (Array.isArray(v) ? (v as Record<string, unknown>[]) : [])
+  const p = (d.profile || {}) as Record<string, unknown>
+  for (const k of Object.keys(r.profile) as (keyof Profile)[]) if (k !== 'photo') r.profile[k] = strOf(p[k])
+  r.summary = strOf(d.summary)
+  r.experience = list(d.experience).map((e) => ({ id: uid(), company: strOf(e.company), position: strOf(e.position), start: strOf(e.start), end: strOf(e.end), current: !!e.current, description: strOf(e.description) }))
+  r.education = list(d.education).map((e) => ({ id: uid(), school: strOf(e.school), degree: strOf(e.degree), major: strOf(e.major), start: strOf(e.start), end: strOf(e.end), description: strOf(e.description) }))
+  r.skillGroups = list(d.skillGroups).map((g) => ({ id: uid(), name: strOf(g.name), skills: list(g.skills).map((k) => ({ id: uid(), name: strOf(k.name), level: Math.max(0, Math.min(5, Number(k.level) || 0)), years: strOf(k.years) })) })).filter((g) => g.skills.length)
+  r.projects = list(d.projects).map((x) => ({ id: uid(), name: strOf(x.name), company: strOf(x.company), role: strOf(x.role), start: strOf(x.start), end: strOf(x.end), link: strOf(x.link), description: strOf(x.description) }))
+  r.certificates = list(d.certificates).map((x) => ({ id: uid(), name: strOf(x.name), issuer: strOf(x.issuer), date: strOf(x.date), link: strOf(x.link) }))
+  r.languages = list(d.languages).map((x) => ({ id: uid(), name: strOf(x.name), level: strOf(x.level) }))
+  r.activities = list(d.activities).map((x) => ({ id: uid(), title: strOf(x.title), organization: strOf(x.organization), start: strOf(x.start), end: strOf(x.end), description: strOf(x.description) }))
+  r.awards = list(d.awards).map((x) => ({ id: uid(), title: strOf(x.title), issuer: strOf(x.issuer), date: strOf(x.date), description: strOf(x.description) }))
+  if (r.profile.title && !name) r.name = `CV ${r.profile.fullName || ''} – ${r.profile.title}`.trim()
+  return r
+}
+
 export const useStore = create<State>()(
   persist(
     (set, get) => {
@@ -74,13 +107,29 @@ export const useStore = create<State>()(
         uiLang: 'vi',
         zoom: 1,
         panel: 'content',
+        user: null,
+        authReady: false,
+        googleClientId: '',
+        aiParse: false,
+        sync: 'idle',
+
+        setUser: (user, resumes) => set({ user, resumes: resumes.map((r) => normalize(r)), currentId: null, sync: 'idle' }),
+        setAuthReady: (authReady) => set({ authReady }),
+        setGoogleClientId: (googleClientId) => set({ googleClientId }),
+        setAiParse: (aiParse) => set({ aiParse }),
+        setSync: (sync) => set({ sync }),
 
         setUiLang: (uiLang) => set({ uiLang }),
         setZoom: (zoom) => set({ zoom }),
         setPanel: (panel) => set({ panel }),
 
-        createResume: (kind) => {
-          const r = kind === 'sample' ? sampleResume() : blankResume(get().uiLang === 'vi' ? 'CV mới' : 'New CV')
+        createResume: () => {
+          const r = blankResume(get().uiLang === 'vi' ? 'CV mới' : 'New CV')
+          set((s) => ({ resumes: [r, ...s.resumes], currentId: r.id }))
+          return r.id
+        },
+        createFromParsed: (data, name) => {
+          const r = resumeFromParsed(data, name)
           set((s) => ({ resumes: [r, ...s.resumes], currentId: r.id }))
           return r.id
         },

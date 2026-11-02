@@ -1,13 +1,17 @@
-import { useRef } from 'react'
-import { Copy, FileText, Globe, Plus, Sparkles, Trash2, Upload } from 'lucide-react'
+import { useRef, useState } from 'react'
+import { Copy, FileText, Globe, Loader2, Plus, Sparkles, Trash2, Upload } from 'lucide-react'
+import { api } from '../api'
 import { useStore } from '../store'
 import { ui } from '../i18n'
 import type { Locale } from '../types'
+import AuthBox from './AuthBox'
 
 export default function Dashboard() {
-  const { resumes, uiLang, setUiLang, createResume, duplicateResume, deleteResume, selectResume, importResume } = useStore()
+  const { resumes, uiLang, setUiLang, createResume, createFromParsed, duplicateResume, deleteResume, selectResume, importResume, user, googleClientId, aiParse } = useStore()
   const t = ui(uiLang)
   const fileRef = useRef<HTMLInputElement>(null)
+  const cvRef = useRef<HTMLInputElement>(null)
+  const [parsing, setParsing] = useState(false)
 
   const onImport = async (f: File | undefined) => {
     if (!f) return
@@ -17,6 +21,20 @@ export default function Dashboard() {
       if (!id) alert('Invalid file')
     } catch {
       alert('Invalid JSON file')
+    }
+  }
+
+  const onUploadCv = async (f: File | undefined) => {
+    if (!f) return
+    if (!user) { alert(t.uploadCvLogin); return }
+    setParsing(true)
+    try {
+      const data = await api.parseCV(f)
+      createFromParsed(data, '')
+    } catch (e) {
+      alert(`${t.parseFailed}: ${e instanceof Error ? e.message : e}`)
+    } finally {
+      setParsing(false)
     }
   }
 
@@ -33,7 +51,10 @@ export default function Dashboard() {
               <div className="text-[11px] text-gray-500 leading-tight">{t.tagline}</div>
             </div>
           </div>
-          <LangSwitch value={uiLang} onChange={setUiLang} label={t.uiLang} />
+          <div className="flex items-center gap-3">
+            <AuthBox />
+            <LangSwitch value={uiLang} onChange={setUiLang} label={t.uiLang} />
+          </div>
         </div>
       </header>
 
@@ -43,10 +64,24 @@ export default function Dashboard() {
           <div className="flex flex-wrap gap-2">
             <button className="btn-secondary" onClick={() => fileRef.current?.click()}><Upload size={16} />{t.importJson}</button>
             <input ref={fileRef} type="file" accept="application/json,.json" className="hidden" onChange={(e) => { void onImport(e.target.files?.[0]); e.target.value = '' }} />
-            <button className="btn-secondary" onClick={() => createResume('sample')}><Sparkles size={16} />{t.fromSample}</button>
-            <button className="btn-primary" onClick={() => createResume('blank')}><Plus size={16} />{t.newCv}</button>
+            {aiParse && (
+              <>
+                <button className="btn-secondary" disabled={parsing} onClick={() => (user ? cvRef.current?.click() : alert(t.uploadCvLogin))}>
+                  {parsing ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}{parsing ? t.parsing : t.uploadCv}
+                </button>
+                <input ref={cvRef} type="file" accept=".pdf,.docx,.png,.jpg,.jpeg,.webp,.txt,application/pdf,image/*" className="hidden" onChange={(e) => { void onUploadCv(e.target.files?.[0]); e.target.value = '' }} />
+              </>
+            )}
+            <button className="btn-primary" onClick={() => createResume()}><Plus size={16} />{t.newCv}</button>
           </div>
         </div>
+
+        {!user && googleClientId && (
+          <div className="mb-5 rounded-lg border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-900">{t.loginHint}</div>
+        )}
+        {aiParse && (
+          <div className="mb-5 rounded-lg border border-violet-100 bg-violet-50 px-4 py-3 text-sm text-violet-900 flex items-start gap-2"><Sparkles size={16} className="mt-0.5 shrink-0" /><span>{t.uploadCvHint}{!user && ` ${t.uploadCvLogin}`}</span></div>
+        )}
 
         {resumes.length === 0 ? (
           <div className="card p-10 text-center text-gray-500">

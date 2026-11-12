@@ -1,4 +1,4 @@
-import { Check } from 'lucide-react'
+import { Check, LayoutTemplate } from 'lucide-react'
 import { useStore, useCurrent } from '../store'
 import { ui } from '../i18n'
 import { ACCENTS, FONTS } from '../data/defaults'
@@ -9,7 +9,7 @@ const TEMPLATES: TemplateId[] = ['itviec', 'modern', 'classic', 'minimal', 'crea
 
 export default function DesignPanel() {
   const r = useCurrent()!
-  const { uiLang, updateDesign } = useStore()
+  const { uiLang, updateDesign, setGallery } = useStore()
   const t = ui(uiLang)
   const d = r.design
 
@@ -26,6 +26,7 @@ export default function DesignPanel() {
             </button>
           ))}
         </div>
+        <button className="btn-secondary w-full justify-center mt-2" onClick={() => setGallery(true)}><LayoutTemplate size={16} />{t.allTemplates}</button>
       </Group>
 
       <Group title={t.accent}>

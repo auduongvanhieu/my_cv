@@ -60,8 +60,8 @@ textarea.input { @apply resize-y leading-relaxed; min-height: 72px; }
   html, body, #root { height: auto; background: #fff !important; }
   .no-print { display: none !important; }
   .preview-area { overflow: visible !important; padding: 0 !important; background: #fff !important; height: auto !important; }
-  .preview-scale { transform: none !important; margin: 0 !important; }
-  .cv-page { box-shadow: none !important; margin: 0 !important; width: 210mm !important; }
+  .preview-scale { width: auto !important; height: auto !important; margin: 0 !important; }
+  .cv-page { transform: none !important; box-shadow: none !important; margin: 0 !important; width: 210mm !important; }
   .page-guide { display: none !important; }
   * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
 }

@@ -99,3 +99,11 @@ export function alpha(hex: string, a: number) {
   const [r, g, b] = hexToRgb(hex)
   return `rgba(${r}, ${g}, ${b}, ${a})`
 }
+
+/** Print the current CV preview as PDF with a sensible document title. */
+export function printCv(r: { name: string; profile: { fullName: string; title: string } }) {
+  const prev = document.title
+  document.title = `${r.profile.fullName || 'CV'} - ${r.profile.title || r.name}`.trim()
+  window.print()
+  setTimeout(() => (document.title = prev), 500)
+}

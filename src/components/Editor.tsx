@@ -1,28 +1,24 @@
 import { useRef, useState } from 'react'
-import { ArrowLeft, Download, FileJson, Palette, PenLine, Printer, Upload, ZoomIn, ZoomOut, Info, X } from 'lucide-react'
+import { ArrowLeft, Download, FileJson, LayoutTemplate, Palette, PenLine, Printer, Upload, ZoomIn, ZoomOut, Info, X } from 'lucide-react'
 import { useStore, useCurrent } from '../store'
 import { ui } from '../i18n'
 import ContentPanel from './ContentPanel'
 import DesignPanel from './DesignPanel'
 import Preview from './Preview'
+import TemplateGallery from './TemplateGallery'
 import { LangSwitch } from './Dashboard'
 import AuthBox, { SyncStatus } from './AuthBox'
-import { download, slugify } from '../utils'
+import { download, printCv, slugify } from '../utils'
 
 export default function Editor() {
   const r = useCurrent()!
-  const { uiLang, setUiLang, panel, setPanel, zoom, setZoom, selectResume, renameResume, importResume } = useStore()
+  const { uiLang, setUiLang, panel, setPanel, zoom, setZoom, selectResume, renameResume, importResume, gallery, setGallery } = useStore()
   const t = ui(uiLang)
   const [showHint, setShowHint] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
   const exportJson = () => download(`${slugify(r.name) || 'cv'}.json`, JSON.stringify(r, null, 2))
-  const print = () => {
-    const prev = document.title
-    document.title = `${r.profile.fullName || 'CV'} - ${r.profile.title || r.name}`.trim()
-    window.print()
-    setTimeout(() => (document.title = prev), 500)
-  }
+  const print = () => printCv(r)
   const onImport = async (f: File | undefined) => {
     if (!f) return
     try { importResume(JSON.parse(await f.text())) } catch { alert('Invalid JSON file') }
@@ -40,6 +36,7 @@ export default function Editor() {
           <span className="text-xs w-10 text-center text-gray-600">{Math.round(zoom * 100)}%</span>
           <button className="icon-btn" title={t.zoom} onClick={() => setZoom(Math.min(1.6, +(zoom + 0.1).toFixed(2)))}><ZoomIn size={16} /></button>
         </div>
+        <button className="btn-secondary" onClick={() => setGallery(true)} title={t.allTemplates}><LayoutTemplate size={16} /><span className="hidden md:inline">{t.template}</span></button>
         <LangSwitch value={uiLang} onChange={setUiLang} />
         <AuthBox compact />
         <button className="btn-secondary hidden sm:inline-flex" onClick={() => fileRef.current?.click()} title={t.importJson}><Upload size={16} /></button>
@@ -72,6 +69,7 @@ export default function Editor() {
           <Preview />
         </main>
       </div>
+      {gallery && <TemplateGallery />}
     </div>
   )
 }

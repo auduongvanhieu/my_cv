@@ -11,7 +11,7 @@ Domain: https://mycv.coffeesos.online
 - Quản lý nhiều CV: tạo mới, nhân bản, đổi tên, xoá.
 - Các mục: Thông tin cá nhân (kèm ảnh), Giới thiệu, Học vấn, Kỹ năng (nhóm + mức độ + số năm), Kinh nghiệm, Dự án, Chứng chỉ, Ngoại ngữ, Hoạt động, Giải thưởng, Sở thích, Người tham chiếu, và mục tuỳ chỉnh.
 - Kéo thả sắp xếp thứ tự mục, ẩn/hiện từng mục, đổi tiêu đề mục.
-- 5 mẫu CV: ITviec (hai cột cổ điển), Modern, Classic, Minimal, Creative.
+- 5 mẫu CV: ITviec (hai cột cổ điển), Modern, Classic, Minimal, Creative. Màn "Mẫu CV" kiểu ITviec: mọi mẫu được xem trước bằng chính nội dung CV của bạn, chọn màu chủ đạo rồi bấm "Dùng mẫu CV này"; tự mở sau khi AI bóc tách CV.
 - Tuỳ chỉnh màu chủ đạo, phông chữ, cỡ chữ, giãn dòng, lề trang, khung ảnh, kiểu hiển thị kỹ năng.
 - Ngôn ngữ giao diện và ngôn ngữ tiêu đề trong CV: Tiếng Việt / English.
 - Xuất PDF qua hộp thoại in của trình duyệt (khổ A4, giữ màu nền), xuất / nhập JSON để sao lưu.

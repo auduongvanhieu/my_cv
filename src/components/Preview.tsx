@@ -2,12 +2,15 @@ import { useEffect, useRef, useState } from 'react'
 import { useStore, useCurrent } from '../store'
 import { ui } from '../i18n'
 import { renderTemplate } from '../templates'
+import type { Resume } from '../types'
 
 const PAGE_H_MM = 297
 
-export default function Preview() {
-  const r = useCurrent()!
-  const { zoom, uiLang } = useStore()
+export default function Preview({ resume, zoom: zoomProp }: { resume?: Resume; zoom?: number } = {}) {
+  const current = useCurrent()!
+  const r = resume ?? current
+  const { zoom: storeZoom, uiLang } = useStore()
+  const zoom = zoomProp ?? storeZoom
   const t = ui(uiLang)
   const pageRef = useRef<HTMLDivElement>(null)
   const [pages, setPages] = useState(1)
@@ -34,8 +37,8 @@ export default function Preview() {
 
   return (
     <div className="preview-area h-full overflow-auto bg-gray-200/80 p-6">
-      <div className="preview-scale origin-top mx-auto" style={{ transform: `scale(${zoom})`, width: '210mm', marginBottom: `calc(${PAGE_H_MM}mm * ${pages} * ${zoom - 1})` }}>
-        <div ref={pageRef} className="cv-page mx-auto flex flex-col" style={{ minHeight: `${PAGE_H_MM * pages}mm`, fontFamily: `'${r.design.font}', sans-serif`, fontSize: r.design.fontSize + 'px', lineHeight: r.design.lineHeight }}>
+      <div className="preview-scale mx-auto" style={{ width: `calc(210mm * ${zoom})`, height: `calc(${PAGE_H_MM * pages}mm * ${zoom})` }}>
+        <div ref={pageRef} className="cv-page origin-top-left flex flex-col" style={{ transform: `scale(${zoom})`, minHeight: `${PAGE_H_MM * pages}mm`, fontFamily: `'${r.design.font}', sans-serif`, fontSize: r.design.fontSize + 'px', lineHeight: r.design.lineHeight }}>
           <div className="flex-1 flex flex-col [&>*]:flex-1">{renderTemplate(r)}</div>
           {Array.from({ length: pages - 1 }, (_, i) => (
             <div key={i} className="page-guide" style={{ top: `${(i + 1) * PAGE_H_MM * mmPx}px` }}><span>{t.page} {i + 2}</span></div>

@@ -11,6 +11,7 @@ interface State {
   uiLang: Locale
   zoom: number
   panel: 'content' | 'design'
+  gallery: boolean
   user: User | null
   authReady: boolean
   googleClientId: string
@@ -26,6 +27,7 @@ interface State {
   setUiLang: (l: Locale) => void
   setZoom: (z: number) => void
   setPanel: (p: 'content' | 'design') => void
+  setGallery: (open: boolean) => void
 
   createResume: () => string
   createFromParsed: (data: unknown, name: string) => string
@@ -107,6 +109,7 @@ export const useStore = create<State>()(
         uiLang: 'vi',
         zoom: 1,
         panel: 'content',
+        gallery: false,
         user: null,
         authReady: false,
         googleClientId: '',
@@ -122,6 +125,7 @@ export const useStore = create<State>()(
         setUiLang: (uiLang) => set({ uiLang }),
         setZoom: (zoom) => set({ zoom }),
         setPanel: (panel) => set({ panel }),
+        setGallery: (gallery) => set({ gallery }),
 
         createResume: () => {
           const r = blankResume(get().uiLang === 'vi' ? 'CV mới' : 'New CV')

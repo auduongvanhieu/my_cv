@@ -7,7 +7,7 @@ import type { Locale } from '../types'
 import AuthBox from './AuthBox'
 
 export default function Dashboard() {
-  const { resumes, uiLang, setUiLang, createResume, createFromParsed, duplicateResume, deleteResume, selectResume, importResume, user, googleClientId, aiParse } = useStore()
+  const { resumes, uiLang, setUiLang, createResume, createFromParsed, duplicateResume, deleteResume, selectResume, importResume, user, googleClientId, aiParse, setGallery } = useStore()
   const t = ui(uiLang)
   const fileRef = useRef<HTMLInputElement>(null)
   const cvRef = useRef<HTMLInputElement>(null)
@@ -31,6 +31,7 @@ export default function Dashboard() {
     try {
       const data = await api.parseCV(f)
       createFromParsed(data, '')
+      setGallery(true)
     } catch (e) {
       alert(`${t.parseFailed}: ${e instanceof Error ? e.message : e}`)
     } finally {
